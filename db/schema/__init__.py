@@ -6,3 +6,4 @@ from db.schema.pump import Pump
 from db.schema.iss_dynamic_well_tubing import IssDynamicWellTubing
 from db.schema.geologcal_characteristics import GeologicalCharacteristics, get_oil_density_by_field_id_and_stratum_id
 from db.schema.iss_dynamic_well_state import IssDynamicWellState, get_well_states_by_wells_ids
+from db.schema.iss_dobzak_zak_tm import IssDobZakZakTm,get_iss_dob_zak_zak_tm
