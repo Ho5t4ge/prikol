@@ -1,11 +1,11 @@
-from db.db_config import Base
+from db.schema.base import base
 from sqlalchemy.types import Integer, Date, Float, Boolean
 from sqlalchemy import Column
-from db.db_config import session_maker
-from typing import List
+from typing import List, Type
+from db.abstract_db import AbstractDB
 
 
-class TechnologyWell(Base):
+class TechnologyWell(base):
     __tablename__ = 'technology_well'
     __table_args__ = {"schema": "well"}
     wellid = Column(Integer)
@@ -19,15 +19,22 @@ class TechnologyWell(Base):
     flag_stratum = Column(Boolean)
 
 
-def get_technology_well_by_wells_ids(wellids,search_date, session=session_maker()) -> List[TechnologyWell]:
-    return session.query(TechnologyWell).where(
-        TechnologyWell.wellid.in_(wellids) & (TechnologyWell.date_tech.__eq__(search_date)) & (
-            TechnologyWell.flag_stratum.__eq__(False))
-    ).all()
+class TechnologyWellSchema:
+    def __init__(self, db: AbstractDB):
+        self.db = db
 
+    def get_technology_well_by_wells_ids(self, wellids, search_date, session=None) -> List[Type[TechnologyWell]]:
+        if session is None:
+            session = self.db.get_session()
+        return session.query(TechnologyWell).where(
+            TechnologyWell.wellid.in_(wellids) & (TechnologyWell.date_tech.__eq__(search_date)) & (
+                TechnologyWell.flag_stratum.__eq__(False))
+        ).all()
 
-def get_technology_well_by_parts_by_well_ids(wellids,search_date, session=session_maker()) -> List[TechnologyWell]:
-    return session.query(TechnologyWell).where(
-        TechnologyWell.wellid.__eq__(wellids) & (TechnologyWell.date_tech.__eq__(search_date)) & (
-            TechnologyWell.flag_stratum.__eq__(True))
-    ).all()
+    def get_technology_well_by_parts_by_wells_ids(self, wellids, search_date, session=None) -> List[Type[TechnologyWell]]:
+        if session is None:
+            session = self.db.get_session()
+        return session.query(TechnologyWell).where(
+            TechnologyWell.wellid.__eq__(wellids) & (TechnologyWell.date_tech.__eq__(search_date)) & (
+                TechnologyWell.flag_stratum.__eq__(True))
+        ).all()

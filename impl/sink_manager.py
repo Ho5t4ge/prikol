@@ -1,16 +1,18 @@
 from utils.common import replace_letter, get_field_id, find_wellid
-from db.schema import get_well_info_by_well_name, get_well_states_by_wells_ids, get_iss_dob_zak_zak_tm
 import pandas as pd
 import logging
 from utils.config import Config
+from db.db_manager import DB
 
 
 class SinkManager:
     config: Config
+    db: DB
 
-    def __init__(self, config):
+    def __init__(self, config: Config, db: DB):
         self.config = config
         self.log = logging.getLogger('SinkManager')
+        self.db = db
 
     def process_sinks(self, sinks):
         try:
@@ -18,18 +20,22 @@ class SinkManager:
             sinks['base_name'] = sinks['name'].apply(replace_letter)
             sinks['field_id'] = sinks['name'].apply(lambda row: get_field_id(row, self.config.field_ids))
             well_id_map = {f'{found_well.well_name}_{found_well.field_id}': found_well.wellid for found_well in
-                           get_well_info_by_well_name(list(sinks['base_name']), self.config.field_ids.values())}
+                           self.db.well_info_schema.get_well_info_by_well_name(list(sinks['base_name']),
+                                                                               self.config.field_ids.values())}
             sinks['wellid'] = sinks.apply(
                 lambda row: find_wellid(row['base_name'], row['field_id'], well_id_map),
                 axis=1)
             well_states_map = {well_state.wellid: well_state.w_state != self.config.in_work_state for well_state in
-                               get_well_states_by_wells_ids(sinks['wellid'], self.config.search_date)}
+                               self.db.iss_dynamic_well_state_schema.get_well_states_by_wells_ids(sinks['wellid'],
+                                                                                                  self.config.search_date)}
             sinks['w_state'] = sinks['wellid'].map(well_states_map)
             sinks['w_state'].fillna(True, inplace=True)
             active_sinks = sinks.loc[~sinks['w_state']]
             self.log.debug(f'Found {active_sinks.shape[0]} active sinks, starting getting data')
             dob_zak_data_map = {
-                wellid: [obj for obj in get_iss_dob_zak_zak_tm(active_sinks['wellid'], self.config.search_date) if
+                wellid: [obj for obj in self.db.iss_dob_zak_zak_tm_schema.get_iss_dob_zak_zak_tm(active_sinks['wellid'],
+                                                                                                 self.config.search_date)
+                         if
                          obj.wellid == wellid] for wellid in active_sinks['wellid']}
             active_sinks['qz_m3'] = active_sinks['wellid'].map(
                 lambda wellid: round(self.__get_dob_zak_data(wellid, dob_zak_data_map), 2)

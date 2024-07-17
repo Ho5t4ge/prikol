@@ -1,18 +1,18 @@
 from utils.common import replace_letter, get_field_id, find_wellid
-from db.schema import get_well_info_by_well_name, get_technology_well_by_wells_ids, \
-    get_technology_well_by_parts_by_well_ids, \
-    get_oil_density_by_field_id_and_stratum_id, get_well_states_by_wells_ids
 import pandas as pd
 import logging
 from utils.config import Config
+from db.db_manager import DB
 
 
 class SourceManager:
     config: Config
+    db: DB
 
-    def __init__(self, config: Config):
+    def __init__(self, config: Config, db: DB):
         self.config = config
         self.log = logging.getLogger('SourceManager')
+        self.db = db
 
     def process_source(self, sources):
         try:
@@ -20,19 +20,22 @@ class SourceManager:
             sources['base_name'] = sources['name'].apply(replace_letter)
             sources['field_id'] = sources['name'].apply(lambda row: get_field_id(row, self.config.field_ids))
             well_id_map = {f'{found_well.well_name}_{found_well.field_id}': found_well.wellid for found_well in
-                           get_well_info_by_well_name(list(sources['base_name']), self.config.field_ids.values())}
+                           self.db.well_info_schema.get_well_info_by_well_name(list(sources['base_name']),
+                                                                               self.config.field_ids.values())}
             sources['wellid'] = sources.apply(
                 lambda row: find_wellid(row['base_name'], row['field_id'], well_id_map),
                 axis=1)
             well_states_map = {well_state.wellid: well_state.w_state != self.config.in_work_state for well_state in
-                               get_well_states_by_wells_ids(sources['wellid'], self.config.search_date)}
+                               self.db.iss_dynamic_well_state_schema.get_well_states_by_wells_ids(sources['wellid'],
+                                                                                                  self.config.search_date)}
             sources['w_state'] = sources['wellid'].map(well_states_map)
             sources['w_state'].fillna(True, inplace=True)
             active_sources = sources.loc[~sources['w_state']]
             self.log.debug(f'Found {active_sources.shape[0]} active sources, starting getting data')
             technology_well_data_map = {technology_well.wellid: technology_well for technology_well in
-                                        get_technology_well_by_wells_ids(active_sources['wellid'],
-                                                                         self.config.search_date)}
+                                        self.db.technology_well_schema.get_technology_well_by_wells_ids(
+                                            active_sources['wellid'],
+                                            self.config.search_date)}
             active_sources['gas_factor_model'] = active_sources.apply(
                 lambda row: self.__find_gas(row['wellid'], technology_well_data_map), axis=1)
             self.log.debug('Starting calculate weighted average gas factor')
@@ -53,7 +56,8 @@ class SourceManager:
         gas_factors = []
         for dob in dob_data:
             geological_characteristics = [x for x in
-                                          get_oil_density_by_field_id_and_stratum_id(dob.field_id, dob.stratum_id)
+                                          self.db.geological_characteristics.get_oil_density_by_field_id_and_stratum_id(
+                                              dob.field_id, dob.stratum_id)
                                           if
                                           x.density_oil_stratum is not None]
             if geological_characteristics:
@@ -71,7 +75,8 @@ class SourceManager:
     def __find_gas(self, wellid, technology_well_data_map):
         if wellid in technology_well_data_map:
             if technology_well_data_map.get(wellid).gas_factor == 0.0:
-                dob_data = get_technology_well_by_parts_by_well_ids(wellid, self.config.search_date)
+                dob_data = self.db.technology_well_schema.get_technology_well_by_parts_by_wells_ids(wellid,
+                                                                                                    self.config.search_date)
                 if dob_data:
                     return self.__calculate_gas_value(dob_data, technology_well_data_map[wellid])
                 else:
@@ -83,7 +88,8 @@ class SourceManager:
     def __find_gas_without_dob_data(self, wellid, technology_well_data_map):
         data = technology_well_data_map.get(wellid)
         geological_characteristics = [x for x in
-                                      get_oil_density_by_field_id_and_stratum_id(data.field_id, data.stratum_id) if
+                                      self.db.geological_characteristics.get_oil_density_by_field_id_and_stratum_id(
+                                          data.field_id, data.stratum_id) if
                                       x.density_oil_stratum is not None]
         if geological_characteristics:
             return data.gas_factor * geological_characteristics[0].density_oil_stratum

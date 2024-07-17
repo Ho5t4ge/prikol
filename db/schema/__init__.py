@@ -1,6 +1,0 @@
-from db.schema.well_info import WellInfo, get_well_info_by_well_name
-from db.schema.technology_well import TechnologyWell, get_technology_well_by_wells_ids, \
-    get_technology_well_by_parts_by_well_ids
-from db.schema.geologcal_characteristics import GeologicalCharacteristics, get_oil_density_by_field_id_and_stratum_id
-from db.schema.iss_dynamic_well_state import IssDynamicWellState, get_well_states_by_wells_ids
-from db.schema.iss_dobzak_zak_tm import IssDobZakZakTm,get_iss_dob_zak_zak_tm

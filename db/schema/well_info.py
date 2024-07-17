@@ -1,11 +1,11 @@
-from db.db_config import Base
+from db.schema.base import base
 from sqlalchemy.types import Integer, String
 from sqlalchemy import Column, and_
-from db.db_config import session_maker
-from typing import List
+from typing import List, Type
+from db.abstract_db import AbstractDB
 
 
-class WellInfo(Base):
+class WellInfo(base):
     __tablename__ = 'well_info'
     __table_args__ = {"schema": "well"}
     wellid = Column(Integer, primary_key=True)
@@ -15,6 +15,12 @@ class WellInfo(Base):
     base_name = Column(String)
 
 
-def get_well_info_by_well_name(well_names, field_ids, session=session_maker()) -> List[WellInfo]:
-    return session.query(WellInfo).where(
-        and_(WellInfo.well_name.in_(well_names), WellInfo.field_id.in_(field_ids))).all()
+class WellInfoSchema:
+    def __init__(self, db: AbstractDB):
+        self.db = db
+
+    def get_well_info_by_well_name(self, well_names, field_ids,session=None) -> List[Type[WellInfo]]:
+        if session is None:
+            session = self.db.get_session()
+        return session.query(WellInfo).where(
+            and_(WellInfo.well_name.in_(well_names), WellInfo.field_id.in_(field_ids))).all()

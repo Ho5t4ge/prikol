@@ -9,6 +9,13 @@ from typing import Optional
 
 
 class Config:
+    db_user: str
+    db_pass: str
+    db_host: str
+    db_port: int
+    db_name: str
+    use_external_oracle: bool
+    external_oracle_path: str
     field_ids: dict
     search_date: datetime
     search_date_str: str
@@ -25,6 +32,13 @@ class Config:
         self.path = config_path
         with open(self.path, encoding='utf-8') as file:
             config_file = yaml.load(file, Loader=yaml.FullLoader)
+            self.set_config_parameter('db_user', config_file, str, 'db', 'user')
+            self.set_config_parameter('db_pass', config_file, str, 'db', 'pass')
+            self.set_config_parameter('db_host', config_file, str, 'db', 'host')
+            self.set_config_parameter('db_port', config_file, int, 'db', 'port')
+            self.set_config_parameter('db_name', config_file, str, 'db', 'name')
+            self.set_config_parameter('use_external_oracle', config_file, bool, 'db', 'dll', 'use_external')
+            self.set_config_parameter('external_oracle_path', config_file, str, 'db', 'dll', 'path')
             self.set_config_parameter('field_ids', config_file, dict, 'field_ids')
             self.set_config_parameter('search_date_str', config_file, str, 'search_date_str')
             self.set_config_parameter('t_nav_exe_path', config_file, str, 't_nav_exe_path')

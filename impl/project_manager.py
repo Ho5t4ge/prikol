@@ -3,17 +3,20 @@ from impl.sink_manager import SinkManager
 import logging
 from tNavigator_python_API import ProjectType
 from utils.config import Config
+from db.db_manager import DB
 
 
 class ProjectManager:
     config: Config
     source_manager: SourceManager
     sink_manager: SinkManager
+    db: DB
 
-    def __init__(self, config: Config):
+    def __init__(self, config: Config, db: DB):
         self.config = config
-        self.source_manager = SourceManager(config)
-        self.sink_manager = SinkManager(config)
+        self.db = db
+        self.source_manager = SourceManager(config, db)
+        self.sink_manager = SinkManager(config, db)
         self.log = logging.getLogger('ProjectManager')
 
     def process_projects(self):
