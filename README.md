@@ -8,6 +8,15 @@
 ### Добывающие(source)
 Для добывающих скважин расчитываться **дебит жидкости в м3**, **обводненность в м3**, **средне-взвешенный газовый фактор т/т**, **статус скважины**
 
+## Инструкция по установке библиотек
+Для работы приложения необходимо установить библиотеки, описанные в **requirements.txt**
+<pre><code class="shell">pip install -r requirements.txt
+</code></pre>
+Помимо библиотек, описанных в **requirements.txt**, необходима библиотека `tNavigator_python_API`, которая устанавливается командой: 
+<pre><code class="shell">pip install .\tNavigator_python_API.zip
+</code></pre>
+Файл **tNavigator_python_API.zip**, поставляется вместе с ПО tNavigator, после установки ПО расположен по пути `tNavigator\24.1\libs\python` 
+
 ## Конфигурации
 Конфигурационные параметры указываются в конфигурационном файле *config.yaml*. Конфигурационный файл должен располагаться в одной директории с исполняемым. Среди обязательных конфигурационных параметров:
 
@@ -42,9 +51,26 @@
        1. `use_external` использовать ли dll
        2. `path` путь к dll
 
-## Инструкция
-Для использования приложения, помимо библиотек, описанных в **requirements.txt**, необходима библиотека `tNavigator_python_API`, которая устанавливается командой: 
-<pre><code class="shell">pip install .\tNavigator_python_API.zip
+Пример для создания конфигурационного файла
+<pre><code class="shell">
+field_ids:
+  NE: 86
+  MI: 78
+search_date_str: '2024-05-01 00:00:00.000'
+default_gas_model_value : 0.758
+default_gas_factor_value : 74.4
+in_work_state : В работе
+t_nav_exe_path: D:/Users/prikol/AppData/Local/Programs/RFD/tNavigator/24.1/tNavigator-con.exe
+t_nav_project_path: D:/tnavtest/Mishaevskoe_01.05.2024.snp
+db:
+  user: wi_blabla
+  pass: pass_blabla
+  host: 10.11.12.13
+  port: 3220
+  name: DB
+  dll:
+    use_external: True
+    path: oracle_dll
+
 </code></pre>
-Файл **tNavigator_python_API.zip**, поставляется вместе с ПО tNavigator, после установки ПО расположен по пути `tNavigator\24.1\libs\python` 
 
