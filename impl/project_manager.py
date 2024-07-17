@@ -25,8 +25,6 @@ class ProjectManager:
         self.log.debug(f'Found {len(wd_proj_list)} projects')
         for project in wd_proj_list:
             try:
-                if project == 'Тест':
-                    continue
                 self.log.debug(f'Starting process project with name {project}')
                 well_designer_project = self.config.project.get_subproject_by_name(name=project, type=ProjectType.ND)
                 well_designer_project.run_py_code(code="request_license_feature (feature='FEAT_NETWORK_DESIGNER')")
