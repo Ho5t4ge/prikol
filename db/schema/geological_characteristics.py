@@ -14,12 +14,6 @@ class GeologicalCharacteristics(base):
     density_oil_stratum = Column(Float)
 
 
-def get_oil_density_by_field_id_and_stratum_id(field_id, stratum_id, session=None) -> List[GeologicalCharacteristics]:
-    return session.query(GeologicalCharacteristics).where(
-        GeologicalCharacteristics.field_id.__eq__(field_id) & GeologicalCharacteristics.stratum_id.__eq__(
-            stratum_id)).all()
-
-
 class GeologicalCharacteristicsSchema:
     def __init__(self, db: AbstractDB):
         self.db = db

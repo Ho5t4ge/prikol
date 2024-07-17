@@ -3,11 +3,13 @@ import pandas as pd
 import logging
 from utils.config import Config
 from db.db_manager import DB
+from sqlalchemy.orm import Session
 
 
 class SourceManager:
     config: Config
     db: DB
+    current_session: Session | None
 
     def __init__(self, config: Config, db: DB):
         self.config = config
@@ -16,18 +18,19 @@ class SourceManager:
 
     def process_source(self, sources):
         try:
+            self.current_session = self.db.get_session()
             sources = sources[~sources['name'].str.startswith('IN_')]
             sources['base_name'] = sources['name'].apply(replace_letter)
             sources['field_id'] = sources['name'].apply(lambda row: get_field_id(row, self.config.field_ids))
             well_id_map = {f'{found_well.well_name}_{found_well.field_id}': found_well.wellid for found_well in
                            self.db.well_info_schema.get_well_info_by_well_name(list(sources['base_name']),
-                                                                               self.config.field_ids.values())}
+                                                                               self.config.field_ids.values(), self.current_session)}
             sources['wellid'] = sources.apply(
                 lambda row: find_wellid(row['base_name'], row['field_id'], well_id_map),
                 axis=1)
             well_states_map = {well_state.wellid: well_state.w_state != self.config.in_work_state for well_state in
                                self.db.iss_dynamic_well_state_schema.get_well_states_by_wells_ids(sources['wellid'],
-                                                                                                  self.config.search_date)}
+                                                                                                  self.config.search_date, self.current_session)}
             sources['w_state'] = sources['wellid'].map(well_states_map)
             sources['w_state'].fillna(True, inplace=True)
             active_sources = sources.loc[~sources['w_state']]
@@ -35,7 +38,7 @@ class SourceManager:
             technology_well_data_map = {technology_well.wellid: technology_well for technology_well in
                                         self.db.technology_well_schema.get_technology_well_by_wells_ids(
                                             active_sources['wellid'],
-                                            self.config.search_date)}
+                                            self.config.search_date, self.current_session)}
             active_sources['gas_factor_model'] = active_sources.apply(
                 lambda row: self.__find_gas(row['wellid'], technology_well_data_map), axis=1)
             self.log.debug('Starting calculate weighted average gas factor')
@@ -48,6 +51,7 @@ class SourceManager:
             sources = pd.merge(sources, active_sources, on=['wellid', 'name', 'base_name', 'w_state', 'field_id'],
                                how='left')
             self.log.debug('Finished getting sources data')
+            self.current_session = None
             return sources
         except Exception as e:
             raise Exception('Error during process sources') from e
@@ -57,7 +61,7 @@ class SourceManager:
         for dob in dob_data:
             geological_characteristics = [x for x in
                                           self.db.geological_characteristics.get_oil_density_by_field_id_and_stratum_id(
-                                              dob.field_id, dob.stratum_id)
+                                              dob.field_id, dob.stratum_id, self.current_session)
                                           if
                                           x.density_oil_stratum is not None]
             if geological_characteristics:
@@ -76,7 +80,7 @@ class SourceManager:
         if wellid in technology_well_data_map:
             if technology_well_data_map.get(wellid).gas_factor == 0.0:
                 dob_data = self.db.technology_well_schema.get_technology_well_by_parts_by_wells_ids(wellid,
-                                                                                                    self.config.search_date)
+                                                                                                    self.config.search_date, self.current_session)
                 if dob_data:
                     return self.__calculate_gas_value(dob_data, technology_well_data_map[wellid])
                 else:
@@ -89,7 +93,7 @@ class SourceManager:
         data = technology_well_data_map.get(wellid)
         geological_characteristics = [x for x in
                                       self.db.geological_characteristics.get_oil_density_by_field_id_and_stratum_id(
-                                          data.field_id, data.stratum_id) if
+                                          data.field_id, data.stratum_id, self.current_session) if
                                       x.density_oil_stratum is not None]
         if geological_characteristics:
             return data.gas_factor * geological_characteristics[0].density_oil_stratum

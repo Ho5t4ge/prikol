@@ -19,7 +19,7 @@ class WellInfoSchema:
     def __init__(self, db: AbstractDB):
         self.db = db
 
-    def get_well_info_by_well_name(self, well_names, field_ids,session=None) -> List[Type[WellInfo]]:
+    def get_well_info_by_well_name(self, well_names, field_ids, session=None) -> List[Type[WellInfo]]:
         if session is None:
             session = self.db.get_session()
         return session.query(WellInfo).where(

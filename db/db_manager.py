@@ -23,7 +23,7 @@ class DB(AbstractDB):
             cx_Oracle.init_oracle_client(config.external_oracle_path)
         dsn = cx_Oracle.makedsn(config.db_host, config.db_port, service_name=config.db_name)
         connection_string = f'oracle+cx_oracle://{config.db_user}:{config.db_pass}@{dsn}'
-        self.engine = create_engine(connection_string, max_identifier_length=128, pool_pre_ping=True, pool_size=30,
+        self.engine = create_engine(connection_string, max_identifier_length=128, pool_pre_ping=True, pool_size=20,
                                     max_overflow=0)
         self.session_maker = sessionmaker(autocommit=False, autoflush=False, bind=self.engine, expire_on_commit=False)
         self.prepare()
