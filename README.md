@@ -52,8 +52,7 @@
        2. `path` путь к dll
 
 Пример для создания конфигурационного файла
-<pre><code class="shell">
-field_ids:
+<pre><code class="shell">field_ids:
   NE: 86
   MI: 78
 search_date_str: '2024-05-01 00:00:00.000'
