@@ -1,8 +1,8 @@
 from db.db_prepare import prepare_db
+import os
+from utils.config import Config
 from impl.project_manager import ProjectManager
 
-from utils.config import config_logging
-
+config = Config(os.path.join(os.getcwd(), 'config.yaml'))
 prepare_db()
-config_logging()
-ProjectManager().process_projects()
+ProjectManager(config).process_projects()

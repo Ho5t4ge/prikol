@@ -1,5 +1,4 @@
 import re
-from utils.config import field_ids
 
 
 def replace_letter(name):
@@ -13,7 +12,7 @@ def replace_letter(name):
     return name
 
 
-def get_field_id(name):
+def get_field_id(name, field_ids):
     match = re.search(r'_(\w*?)_', name)
     if match:
         return field_ids.get(match.group(1), 0)
@@ -23,4 +22,3 @@ def get_field_id(name):
 
 def find_wellid(base_name, field_id, well_id_map):
     return well_id_map.get(f'{base_name}_{field_id}', 0)
-

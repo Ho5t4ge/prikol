@@ -4,7 +4,6 @@ from db.db_config import Base
 from sqlalchemy.types import Integer, Date, String
 from sqlalchemy import Column
 from db.db_config import session_maker
-from utils.config import search_date
 
 
 class IssDynamicWellState(Base):
@@ -16,7 +15,7 @@ class IssDynamicWellState(Base):
     w_state = Column(String)
 
 
-def get_well_states_by_wells_ids(well_ids, session=session_maker()) -> List[IssDynamicWellState]:
+def get_well_states_by_wells_ids(well_ids,search_date, session=session_maker()) -> List[IssDynamicWellState]:
     return session.query(IssDynamicWellState).where(
         IssDynamicWellState.wellid.in_(well_ids) &
         (IssDynamicWellState.date_begin_time <= search_date) &
