@@ -4,6 +4,7 @@ from db.schema.well_info import WellInfoSchema
 from db.schema.iss_dynamic_well_state import IssDynamicWellStateSchema
 from db.schema.iss_dobzak_zak_tm import IssDobZakZakTmSchema
 from db.schema.geological_characteristics import GeologicalCharacteristicsSchema
+from db.schema.base import base
 from utils.config import Config
 import cx_Oracle
 from sqlalchemy import create_engine
@@ -36,4 +37,4 @@ class DB(AbstractDB):
         self.iss_dynamic_well_state_schema = IssDynamicWellStateSchema(self)
         self.iss_dob_zak_zak_tm_schema = IssDobZakZakTmSchema(self)
         self.geological_characteristics = GeologicalCharacteristicsSchema(self)
-        self.base.metadata.create_all(self.engine)
+        base.metadata.create_all(self.engine)
