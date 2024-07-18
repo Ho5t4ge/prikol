@@ -1,3 +1,6 @@
+#  Copyright (c) 2010-2024. LUKOIL-Engineering Limited KogalymNIPINeft Branch Office in Tyumen
+#  Данным программным кодом владеет Филиал ООО "ЛУКОЙЛ-Инжиниринг" "КогалымНИПИнефть" в г.Тюмени
+
 from utils.common import replace_letter, get_field_id, find_wellid
 import pandas as pd
 import logging

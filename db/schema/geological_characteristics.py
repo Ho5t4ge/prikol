@@ -1,3 +1,6 @@
+#  Copyright (c) 2010-2024. LUKOIL-Engineering Limited KogalymNIPINeft Branch Office in Tyumen
+#  Данным программным кодом владеет Филиал ООО "ЛУКОЙЛ-Инжиниринг" "КогалымНИПИнефть" в г.Тюмени
+
 from typing import List, Type
 from db.abstract_db import AbstractDB
 from sqlalchemy.types import Integer, Float
