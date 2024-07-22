@@ -44,7 +44,7 @@ class ProjectManager:
                     self.__update_sinks(well_designer_project, sinks.to_dict(orient='list'))
                     self.log.debug('Updated sinks in project')
                 if sinks.empty & sources.empty:
-                    self.log.warning("No found objects in project")
+                    self.log.warning(f"No found objects in project {project}")
                 else:
                     wells = self.__get_objects(well_designer_project, 'well')
                     wells = wells.assign(w_state=True)
